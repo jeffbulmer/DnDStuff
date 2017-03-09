@@ -8,10 +8,11 @@ from random import randint
 import math
 
 class Goblin:    
+    
     def __init__(self, lvl, armour, paceMod, parryMod):
         self.name = self.generateName()      
-        self.level = 0;
-        self.attrLock = False;        
+        self.level = 0
+        self.attrLock = False        
         self.attr = {"agility": 1,
                 "smarts": 1,
                 "spirit": 1,
@@ -34,61 +35,13 @@ class Goblin:
                        "tracking": ["smarts", 0],
                        "use magic item": ["smarts", 0]}
         self.assignSkills(15)
-        self.edges = 0;
+        self.edges = 0
         while self.level < lvl:
             self.levelUp()
         self.toughness = 2+ (self.attr["vigor"]+1) + armour
         self.pace = 6 + paceMod
         
-        #self.parry = 2 + (self.skills["fighting"]/2) + parryMod
-
-
-    def generateName(self):
-        vowels = self.assignWeights({"a": 7, "e": 12, "i": 11, "o": 29, "u":9, "y":3})       
-        consonants = self.assignWeights({'b':3,'c':2,'d':6,'f':1,'g':16,'h':5,'j':1,'k':10,'l':15,'m':9,'n':12,'p':2, 'q':0,'r':14,'s':6,'t':6,'v':5,'w':4,'x':3,'y':3,'z':1})        
-        name = ""
-        lastletter = ""
-        length = randint(4, 8)
-        vir = 0;
-        cir = 0;
-        while len(name) < length:
-            iniVal = randint(0,1)
-            if len(name) == 0:
-                if iniVal is 0:
-                    addletter = vowels[randint(0,len(vowels)-1)]
-                    lastletter = addletter
-                    name += addletter
-                    vir += 2
-                    cir = 0
-                else:
-                    addletter = consonants[randint(0,len(consonants)-1)]
-                    lastletter = addletter                    
-                    name += addletter
-                    vir = 0
-                    cir += 1
-            else:
-                mod = randint(0,max(vir+1, cir+1))
-                if (vir > cir and iniVal == mod) or (cir > vir and iniVal != mod):
-                    addletter = vowels[randint(0,len(vowels)-1)]
-                    if (addletter == lastletter and randint(0,4) == 1) or addletter != lastletter:
-                        name += addletter 
-                        lastletter = addletter
-                        vir += 2
-                        cir = 0
-                else:
-                    addletter = consonants[randint(0,len(consonants)-1)]
-                    if (addletter == lastletter and randint(0,7) == 1) or addletter != lastletter:
-                        if(lastletter == 'g' or lastletter == 'k' or lastletter == 'c' or lastletter == 'j') and randint(0,5) == 1:  
-                            continue;
-                        name += addletter
-                        lastletter = addletter
-                        cir += 1
-                        vir = 0
-        
-                    
-                   
-        return name
-        
+        #self.parry = 2 + (self.skills["fighting"]/2) + parryMod   
                 
     def assignAttr(self):
         points = 5;
@@ -100,10 +53,16 @@ class Goblin:
             if self.attr.keys()[addAttr] == 5:
                 continue
             if self.attr.keys()[addAttr] is "smarts" and ptA%2 is 0:
-                self.attr[self.attr.keys()[addAttr]] += ptA/2
+                while(self.attr[self.attr.keys()[addAttr]] + 1) < 6:                
+                    self.attr[self.attr.keys()[addAttr]] += 1
+                    ptA -= 2
+                    points -=2
             else:
-                 self.attr[self.attr.keys()[addAttr]] += ptA
-            points -= ptA
+                while(self.attr[self.attr.keys()[addAttr]] + 1) < 6:
+                    self.attr[self.attr.keys()[addAttr]] += 1
+                    ptA -= 1
+                    points -= 1
+            
             
     def assignSkills(self, points):
          panic = 0
@@ -200,9 +159,63 @@ class Goblin:
                 valid = True
         print(lvlStr)
     
+    ############################### Name Generation ###########################
+        #---- Handles random name generation for a goblin.
+        #---- first, an array of vowels and an array of constants are created.
+        #---- each array is then weighted, and a while loop then creates a name
+        #---- based on an algorithm which has been found to generate usually
+        #---- reasonable names (the rules are essentially arbitrary)
+        #---- letters are added based on an incentive function that awards 
+        #---- incentive for following the predefined rules. 
+        #----------------------------------------------------------------------
+        #---- The helper function assignWeights expands an array of keys and weights
+        #---- which is given as a dictionary, by creating an array containing
+        #---- a number of each key given by that key's weight.
+    
+    def generateName(self):
+        vowels = self.assignWeights({"a": 7, "e": 12, "i": 11, "o": 29, "u":9, "y":3})       
+        consonants = self.assignWeights({'b':3,'c':2,'d':6,'f':1,'g':16,'h':5,'j':1,'k':10,'l':15,'m':9,'n':12,'p':2, 'q':0,'r':14,'s':6,'t':6,'v':5,'w':4,'x':3,'y':3,'z':1})        
+        name = ""
+        lastletter = ""
+        length = randint(4, 8)
+        vir = 0;
+        cir = 0;
+        while len(name) < length:
+            iniVal = randint(0,1)
+            if len(name) == 0:
+                if iniVal is 0:
+                    addletter = vowels[randint(0,len(vowels)-1)]
+                    lastletter = addletter
+                    name += addletter
+                    vir += 2
+                    cir = 0
+                else:
+                    addletter = consonants[randint(0,len(consonants)-1)]
+                    lastletter = addletter                    
+                    name += addletter
+                    vir = 0
+                    cir += 1
+            else:
+                mod = randint(0,max(vir+1, cir+1))
+                if (vir > cir and iniVal == mod) or (cir > vir and iniVal != mod):
+                    addletter = vowels[randint(0,len(vowels)-1)]
+                    if (addletter == lastletter and randint(0,4) == 1) or addletter != lastletter:
+                        name += addletter 
+                        lastletter = addletter
+                        vir += 2
+                        cir = 0
+                else:
+                    addletter = consonants[randint(0,len(consonants)-1)]
+                    if (addletter == lastletter and randint(0,7) == 1) or addletter != lastletter:
+                        if(lastletter == 'g' or lastletter == 'k' or lastletter == 'c' or lastletter == 'j') and randint(0,5) == 1:  
+                            continue;
+                        name += addletter
+                        lastletter = addletter
+                        cir += 1
+                        vir = 0
+        return name
+        
     def assignWeights(self,dictionary):
-        #this method takes a dictionary with elements and weights, 
-        #and returns a weighted array"""
         array = []
         for k in dictionary:
             v = int(dictionary[k])
@@ -211,7 +224,9 @@ class Goblin:
         return array
                 
             
-    #def toString(self):
+    ############################### toString Method ###########################
+            #---- This method takes all the elements of the character, and
+            #---- generates a basic character sheet.
     def toString(self):
         dieTypes = {'1': 'd4', '2': 'd6', '3': 'd8', '4': 'd10', '5': 'd12', '6': 'd12 +2'}
         attStr = 'Attributes: '
@@ -247,8 +262,78 @@ class Goblin:
 
         returnStr = attStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
+
+class Edge:
+    #Each edge has requirements, a decription, and an effect.
+    #requirements: an array describing the attributes or skills required to take this edge
+    #description: a String describing the edge
+    #effect: an array describing the practical effects of this edge.
+    def __init__(self, name, requirements, description, effect):
+        self.name = name
+        self.requirements = requirements
+        self.description = description
+        self.effect = effect
+        
+    ######################### Requirements format #############################
+        #requirements = {1:[type("attr","skill", or "edge"), 
+        #                   "nameOfAttr",
+        #                   operator("at least","at most", "equal"), 
+        #                   value], ...}
     
-goblin = Goblin(0,0,0,0)
+    ######################### Requirement Checking ############################
+        #----Check whether or not a character is compatible with an edge.
+        #----An edge may have multiple requirements, so the isCompatible method
+        #----must verify that each requirement is met.         
+        #----If at any point a requirement is not fulfilled, it will return false,
+        #----and the character is not compatible with the edge.
+        #----------------------------------------------------------------------
+        #----The verify function checks each requirement to see if it is fulfilled
+        #----It does this by parsing through a requirement, and comparing it to 
+        #----a character's current attributes, skills and edges.
+        #----[Edge requires Edge] compatibility is determined by name only.
+        #----[Edge requires Attribute] compatibility and [Edge requires Skills]
+        #----compatibility is determined by comparison using ">=", "<=", or "=="
+    def isCompatible(self, attr, skills, edges):
+        check = True;        
+        for i in self.requirements:
+            check = self.verify(self.requirements[i], attr, skills, edges)
+            if not check:
+                break
+        return check
+
+    def verify(self, requirement, attr, skills, edges):
+        checkType = requirement[0]
+        name = requirement[1]
+        operator = requirement[2]
+        operand = requirement[3]
+        compareDict = attr;        
+        if checkType is "attr":
+            compareDict = attr
+        elif checkType is "skill":
+            compareDict = skills
+        elif checkType is "edge":
+            compareDict = edges
+        if name in compareDict:
+            if compareDict is edges:
+                return True
+            else:
+                comparison = 0
+                if compareDict is attr:
+                    comparison = compareDict[name]
+                elif compareDict is skills:
+                    comparison = compareDict[name][1]
+                if operator == "at least":
+                    return (comparison >= operand)
+                elif operator == "at most":
+                    return (comparison <= operand)
+                elif operator == "equal":
+                    return (comparison == operand)
+
+goblin = Goblin(20,0,0,0)
+requirement = {1:["skill", "fighting", "equal", 2]}
+block = Edge("Block",requirement, 0, 0)
 print(goblin.name)
 print("Level: " + str(goblin.level))
 print(goblin.toString())
+boolE = block.isCompatible(goblin.attr, goblin.skills, goblin.edges)
+print("Spirit d10 Compatibility: " + str(boolE))
