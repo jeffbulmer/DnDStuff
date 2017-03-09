@@ -35,7 +35,7 @@ class Goblin:
                        "tracking": ["smarts", 0],
                        "use magic item": ["smarts", 0]}
         self.assignSkills(15)
-        self.edges = 0
+        self.edges = {}
         while self.level < lvl:
             self.levelUp()
         self.toughness = 2+ (self.attr["vigor"]+1) + armour
@@ -54,12 +54,12 @@ class Goblin:
             if self.attr.keys()[addAttr] == 5:
                 continue
             if self.attr.keys()[addAttr] is "smarts" and ptA%2 is 0:
-                while(self.attr[self.attr.keys()[addAttr]] + 1) < 6:                
+                while ptA > 0 and (self.attr[self.attr.keys()[addAttr]] + 1) < 6:                
                     self.attr[self.attr.keys()[addAttr]] += 1
                     ptA -= 2
                     points -=2
             else:
-                while(self.attr[self.attr.keys()[addAttr]] + 1) < 6:
+                while ptA > 0 and (self.attr[self.attr.keys()[addAttr]] + 1) < 6:
                     self.attr[self.attr.keys()[addAttr]] += 1
                     ptA -= 1
                     points -= 1
@@ -128,11 +128,17 @@ class Goblin:
         #----                  operator("plus","minus", "multiply", "divide"), 
         #----                  value], ...}
     
+    def addEdge(self, edge):
+        if edge.isCompatible(self.attr, self.skills, self.edges):
+            self.evaluateEdge(edge)
+            self.edges[len(self.edges)] = edge;
+            
+    
     def evaluateEdge(self, edge):
         effects = edge.getEffects()
         for i in effects:
             self.doEffects(effects[i])
-            print(edge.name + " effects done")
+            #print(edge.name + " effects done")
             
     def doEffects(self, effect):
         mod = effect[0]
@@ -396,13 +402,13 @@ class Edge:
                 elif operator == "equal":
                     return (comparison == operand)
 
-goblin = Goblin(20,0,0,0)
-requirement = {1:["attr", "vigor", "at least", 1]}
-effects = {1:["skill", "notice", "plus", 2]}
+goblin = Goblin(0,0,0,0)
+requirement = {1:["attr", "vigor", "at least", 5]}
+effects = {1:["pace", 0, "plus", 6]}
 block = Edge("Expert Sprinter",requirement, 0, effects)
 print(goblin.name)
 print("Level: " + str(goblin.level))
-goblin.evaluateEdge(block)
+goblin.addEdge(block)
 print(goblin.toString())
 boolE = block.isCompatible(goblin.attr, goblin.skills, goblin.edges)
 print("Expert Sprinter Compatibility: " + str(boolE))
