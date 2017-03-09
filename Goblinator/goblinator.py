@@ -39,6 +39,7 @@ class Goblin:
         while self.level < lvl:
             self.levelUp()
         self.toughness = 2+ (self.attr["vigor"]+1) + armour
+        self.parry = 2 + (self.skills["fighting"][1]+1)
         self.pace = 6 + paceMod
         
         #self.parry = 2 + (self.skills["fighting"]/2) + parryMod   
@@ -119,7 +120,58 @@ class Goblin:
                 points -= cost
             else:
                 panic += 1
-                
+    
+    
+    ######################### Effects format #############################
+        #----effects = {1:[type("attr","skill","toughness", or "parry"), 
+        #----                  "nameOfAttr",
+        #----                  operator("plus","minus", "multiply", "divide"), 
+        #----                  value], ...}
+    
+    def evaluateEdge(self, edge):
+        effects = edge.getEffects()
+        for i in effects:
+            self.doEffects(effects[i])
+            print(edge.name + " effects done")
+            
+    def doEffects(self, effect):
+        mod = effect[0]
+        name = effect[1]
+        operator = effect[2]
+        value = effect[3]
+        if mod is "attr":
+            newVal = self.operate(operator, self.attr[name], value)
+            if(newVal > 5):
+                self.attr[name] = 5
+                print(name + " Cannot go higher than d12")
+            else:
+                self.attr[name] += newVal
+        elif mod is "skill":
+            newVal = self.operate(operator, self.skills[name][1], value)
+            if(newVal > 5):
+                self.skills[name][1] = 5
+                print(name + " Cannot go higher than d12")
+            else:
+                self.skills[name][1] += newVal
+        elif mod is "toughness":
+            self.toughness = self.operate(operator, self.toughness, value)
+        elif mod is "parry":
+            self.parry = self.operate(operator, self.parry, value)
+        elif mod is "pace":
+            self.pace = self.operate(operator, self.pace, value)
+        
+    
+    def operate(self, operator, firstOperand, secondOperand):
+        if operator is "plus":
+            return firstOperand + secondOperand
+        elif operator is "minus":
+            return firstOperand - secondOperand
+        elif operator is "multiply":
+            return firstOperand * secondOperand
+        elif operator is "divide":
+            return firstOperand / secondOperand
+        else:
+            return firstOperand                
             
     def levelUp(self):
         #create a levelUp string. This string will contain
@@ -268,19 +320,34 @@ class Edge:
     #requirements: an array describing the attributes or skills required to take this edge
     #description: a String describing the edge
     #effect: an array describing the practical effects of this edge.
-    def __init__(self, name, requirements, description, effect):
+    ######################### Requirements format #############################
+        #----requirements = {1:[type("attr","skill", or "edge"), 
+        #----                  "nameOfAttr",
+        #----                  operator("at least","at most", "equal"), 
+        #----                  value], ...}
+    
+    ######################### Effects format #############################
+        #----effects = {1:[type("attr","skill","toughness", "parry", or "pace"), 
+        #----                  "nameOfAttr",
+        #----                  operator("plus","minus", "multiply", "divide"), 
+        #----                  value], ...}
+    
+    def __init__(self, name, requirements, description, effects):
         self.name = name
         self.requirements = requirements
         self.description = description
-        self.effect = effect
+        self.effects = effects
         
-    ######################### Requirements format #############################
-        #requirements = {1:[type("attr","skill", or "edge"), 
-        #                   "nameOfAttr",
-        #                   operator("at least","at most", "equal"), 
-        #                   value], ...}
+    def getName(self):
+        return self.name
     
-    ######################### Requirement Checking ############################
+    def getDescription(self):
+        return self.description
+        
+    def getEffects(self):
+        return self.effects
+        
+   ######################### Requirement Checking ############################
         #----Check whether or not a character is compatible with an edge.
         #----An edge may have multiple requirements, so the isCompatible method
         #----must verify that each requirement is met.         
@@ -330,10 +397,12 @@ class Edge:
                     return (comparison == operand)
 
 goblin = Goblin(20,0,0,0)
-requirement = {1:["skill", "fighting", "equal", 2]}
-block = Edge("Block",requirement, 0, 0)
+requirement = {1:["attr", "vigor", "at least", 1]}
+effects = {1:["skill", "notice", "plus", 2]}
+block = Edge("Expert Sprinter",requirement, 0, effects)
 print(goblin.name)
 print("Level: " + str(goblin.level))
+goblin.evaluateEdge(block)
 print(goblin.toString())
 boolE = block.isCompatible(goblin.attr, goblin.skills, goblin.edges)
-print("Spirit d10 Compatibility: " + str(boolE))
+print("Expert Sprinter Compatibility: " + str(boolE))
