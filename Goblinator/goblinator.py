@@ -6,11 +6,14 @@ This is a temporary script file.
 """
 from random import randint
 import math
-import edge
+import Edge
+import edgeLibrary
 
 class Goblin:    
     
     def __init__(self, lvl, armour, paceMod, parryMod):
+        self.verbose = True
+        self.library = edgeLibrary.edgeLibrary()
         self.name = self.generateName()      
         self.level = 0
         self.attrLock = False        
@@ -26,26 +29,30 @@ class Goblin:
                        "fighting": ["agility", 0],
                        "healing": ["smarts", 0],
                        "intimidate": ["spirit",0],
+                       "lockpicking": ["agility",0],
                        "notice": ["smarts", 0],
                        "persuasion": ["spirit",0],
                        "repair": ["smarts", 0],
                        "shooting": ["agility", 0],
                        "stealth": ["agility", 0],
+                       "survival":["smarts", 0],
                        "swimming": ["agility", 0],
                        "throwing": ["agility", 0],
                        "tracking": ["smarts", 0],
+                       "taunt": ["smarts", 0],
                        "use magic item": ["smarts", 0]}
         self.assignSkills(15)
         self.edges = {}
-        self.effects = {}
-        while self.level < lvl:
-            self.levelUp()
+        self.effects = {}        
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
         self.base_parry = 2 + (self.skills["fighting"][1]+1)
         self.parry = self.base_parry
         self.pace = 6 + paceMod
-        
+        self.charisma = 0
+
+        while self.level < lvl:
+            self.levelUp()        
                 
     def assignAttr(self):
         points = 5;
@@ -143,10 +150,15 @@ class Goblin:
         #----                  operator("plus","minus", "multiply", "divide"), 
         #----                  value], ...}
     
-    def addEdge(self, edge, verbose):
-        if edge.isCompatible(self.attr, self.skills, self.edges):
-            self.evaluateEdge(edge, verbose)
-            self.edges[len(self.edges)] = edge;
+    def addEdge(self):
+        addEdge = self.library.selectAtRandom()
+        names = {};
+        for i in self.edges:
+            names[i] = self.edges[i].name
+        while (addEdge.isCompatible(self.attr, self.skills, self.edges, self.level)) == False:
+           addEdge = self.library.selectAtRandom()
+        self.evaluateEdge(addEdge, self.verbose)
+        self.edges[len(self.edges)] = addEdge;
             
     
     def evaluateEdge(self, edge, verbose):
@@ -163,7 +175,7 @@ class Goblin:
         name = effect[1]
         operator = effect[2]
         value = effect[3]
-        if mod is ("attr" or "skills"):
+        if mod is ("attr" or "skill"):
             self.effects[len(self.effects)] = name + " " + operator + str(value) + " due to " + edgeName
         elif mod is "toughness":
             self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
@@ -174,6 +186,9 @@ class Goblin:
         elif mod is "pace":
             self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
             self.pace = self.operate(operator, self.pace, value)
+        elif mod is "charisma":
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.charisma = self.operate(operator, self.charisma, value)
     
     def doEffectsCompact(self, effect):
         mod = effect[0]
@@ -247,7 +262,7 @@ class Goblin:
                 lvlStr += " skills raised "
                 valid = True
             if mod is 3:
-                self.edges += 1
+                self.addEdge()
                 lvlStr += " edge added "
                 valid = True
         print(lvlStr)
@@ -338,7 +353,6 @@ class Goblin:
         for i, skill in enumerate(self.skills):
             if str(self.skills[skill][1]) != '0':
                 skillStr += str(skill) + ': ' + str(dieTypes[str(self.skills[skill][1])]) + ', '
-
         for i in self.edges:
             if i == len(self.edges) - 1:
                  edgeStr += "\n" + self.edges[i].toString() + '}'
@@ -356,13 +370,7 @@ class Goblin:
         returnStr = attStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
 
-goblin = Goblin(0,0,0,0)
-requirement = {1:["attr", "vigor", "at least", 4]}
-effects = {1:["pace", 0, "plus", 6]}
-block = edge.Edge("Expert Sprinter",requirement, "Through rigorous training, this character has gained the ability to run very fast", effects)
+goblin = Goblin(32,0,0,0)
 print(goblin.name)
 print("Level: " + str(goblin.level))
-goblin.addEdge(block, True)
 print(goblin.toString())
-boolE = block.isCompatible(goblin.attr, goblin.skills, goblin.edges)
-print("Expert Sprinter Compatibility: " + str(boolE))

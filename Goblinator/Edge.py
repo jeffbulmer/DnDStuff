@@ -4,9 +4,6 @@ Spyder Editor
 
 This is a temporary script file.
 """
-from random import randint
-import math
-
 
 class Edge:
     #Each edge has requirements, a decription, and an effect.
@@ -53,26 +50,41 @@ class Edge:
         #----[Edge requires Edge] compatibility is determined by name only.
         #----[Edge requires Attribute] compatibility and [Edge requires Skills]
         #----compatibility is determined by comparison using ">=", "<=", or "=="
-    def isCompatible(self, attr, skills, edges):
-        check = True;        
+    def isCompatible(self, attr, skills, edges, level):
+        check = True;
+        #if not edges:        
+        #    for i in enumerate(edges):
+        #        if edges[i].name == self.name:
+        #            check = False;            
+        #if check:
         for i in self.requirements:
-            check = self.verify(self.requirements[i], attr, skills, edges)
+            check = self.verify(self.requirements[i], attr, skills, edges, level)
             if not check:
-                break
+                return False
         return check
 
-    def verify(self, requirement, attr, skills, edges):
+    def verify(self, requirement, attr, skills, edges, level):
         checkType = requirement[0]
         name = requirement[1]
         operator = requirement[2]
         operand = requirement[3]
         compareDict = attr;        
+        for i in edges:
+            if self.name == edges[i].name:
+                return False
         if checkType is "attr":
             compareDict = attr
         elif checkType is "skill":
             compareDict = skills
         elif checkType is "edge":
             compareDict = edges
+        elif checkType is ("level" or "charisma" or "toughness"):
+            if operator == "at least":
+                return (level >= operand)
+            elif operator == "at most":
+                return (level <= operand)
+            elif operator == "equal":
+                return (level == operand)   
         if name in compareDict:
             if compareDict is edges:
                 return True
@@ -91,3 +103,4 @@ class Edge:
                     
     def toString(self):
         return self.name + ": " + self.description;
+        
