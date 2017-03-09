@@ -6,14 +6,17 @@ This is a temporary script file.
 """
 from random import randint
 import math
-import Edge
+import Modifier
 import edgeLibrary
+import hindranceLibrary
 
 class Goblin:    
     
     def __init__(self, lvl, armour, paceMod, parryMod):
         self.verbose = True
-        self.library = edgeLibrary.edgeLibrary()
+        self.allEdges = edgeLibrary.edgeLibrary()
+        self.allHindrances = hindranceLibrary.hindranceLibrary() 
+        
         self.name = self.generateName()      
         self.level = 0
         self.attrLock = False        
@@ -41,8 +44,9 @@ class Goblin:
                        "tracking": ["smarts", 0],
                        "taunt": ["smarts", 0],
                        "use magic item": ["smarts", 0]}
-        self.assignSkills(15)
+        self.assignSkills(15, True)
         self.edges = {}
+        self.hindrances = {}
         self.effects = {}        
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
@@ -50,6 +54,8 @@ class Goblin:
         self.parry = self.base_parry
         self.pace = 6 + paceMod
         self.charisma = 0
+        for i in range (0,3):
+            self.addHindrance() 
 
         while self.level < lvl:
             self.levelUp()        
@@ -75,7 +81,7 @@ class Goblin:
                     points -= 1
             
             
-    def assignSkills(self, points):
+    def assignSkills(self, points, init):
          panic = 0
          while points > 0:
             #select skill to modify            
@@ -92,14 +98,17 @@ class Goblin:
             #which the goblin possesses.
             incentive = math.floor(maxV/2);
             if(maxV > 1):
-                incentive += 1
+                if init:
+                    incentive += 1
+                else:
+                    incentive -= 1
             else:
                 incentive -= 2
             if(skill[1] > maxV):
                 incentive -= 1
             elif(skill[1] < maxV):
                 incentive += 1
-            if(skill[0] == 'smarts' or skill[0] == 'agility'):
+            if(skill[0].lower == 'smarts' or skill[0].lower == 'agility'):
                 incentive += 1
             incentive += maxV - (mod+skill[1]-1)
             
@@ -110,19 +119,21 @@ class Goblin:
             #print("Incentive = " + str(incentive))
             #print("Check = " + str(check))
             #print("Mod = " + str(mod))
-            if incentive >= check or panic is 5:
+            if incentive >= check or panic >= 5:
                 if panic == 5:
                     panic = 0;                
                 cost = 0;
                 for i in range(0,mod):
                     currV = skill[1]
+                    currCost = 0
                     if (currV + 1) > 5:
                         break;
-                    if currV < maxV:
-                        cost += 1
+                    if (currV >= maxV) or (currV == 0 and not init):
+                        currCost = 2
                     else:
-                        cost += 2                    
+                        currCost = 1
                         
+                    cost += currCost
                     if points - cost < 0:
                         break;
                     skill[1] += 1
@@ -151,12 +162,12 @@ class Goblin:
         #----                  value], ...}
     
     def addEdge(self):
-        addEdge = self.library.selectAtRandom()
+        addEdge = self.allEdges.selectAtRandom()
         names = {};
         for i in self.edges:
             names[i] = self.edges[i].name
         while (addEdge.isCompatible(self.attr, self.skills, self.edges, self.level)) == False:
-           addEdge = self.library.selectAtRandom()
+           addEdge = self.allEdges.selectAtRandom()
         self.evaluateEdge(addEdge, self.verbose)
         self.edges[len(self.edges)] = addEdge;
             
@@ -168,26 +179,47 @@ class Goblin:
                 self.doEffectsVerbose(effects[i], edge.getName())
             else:
                 self.doEffectsCompact(effects[i], edge.getName())
-            #print(edge.name + " effects done")
-            
-    def doEffectsVerbose(self, effect, edgeName):
+    
+
+    def addHindrance(self):
+        addHindrance = self.allHindrances.selectAtRandom()
+        names = {};
+        containsMajor = False
+        for i in self.hindrances:
+            names[i] = self.hindrances[i].name
+            if self.hindrances[i].hindType.lower == "major":
+                containsMajor = True;
+        while (addHindrance.isCompatible(self.attr, self.skills, self.edges, self.hindrances, self.level, containsMajor)) == False:
+           addHindrance = self.allHindrances.selectAtRandom()
+        self.evaluateHindrance(addHindrance, self.verbose)
+        self.hindrances[len(self.hindrances)] = addHindrance;
+
+    def evaluateHindrance(self, hindrance, verbose):
+        effects = hindrance.getEffects()
+        for i in effects:
+            if verbose:
+                self.doEffectsVerbose(effects[i], hindrance.getName())
+            else:
+                self.doEffectsCompact(effects[i], hindrance.getName())
+        
+    def doEffectsVerbose(self, effect, modName):
         mod = effect[0]
         name = effect[1]
         operator = effect[2]
         value = effect[3]
         if mod is ("attr" or "skill"):
-            self.effects[len(self.effects)] = name + " " + operator + str(value) + " due to " + edgeName
+            self.effects[len(self.effects)] = name + " " + operator + str(value) + " due to " + modName
         elif mod is "toughness":
-            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + modName
             self.toughness = self.operate(operator, self.toughness, value)
         elif mod is "parry":
-            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + modName
             self.parry = self.operate(operator, self.parry, value)
         elif mod is "pace":
-            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + modName
             self.pace = self.operate(operator, self.pace, value)
         elif mod is "charisma":
-            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + modName
             self.charisma = self.operate(operator, self.charisma, value)
     
     def doEffectsCompact(self, effect):
@@ -258,7 +290,7 @@ class Goblin:
                      valid = True
                      lvlStr += addAttr + " raised by 1"
             if mod is 2:
-                self.assignSkills(2)
+                self.assignSkills(2, False)
                 lvlStr += " skills raised "
                 valid = True
             if mod is 3:
@@ -339,6 +371,7 @@ class Goblin:
         dieTypes = {'1': 'd4', '2': 'd6', '3': 'd8', '4': 'd10', '5': 'd12', '6': 'd12 +2'}
         attStr = 'Attributes: '
         skillStr = 'Skills: '
+        charStr = 'Charisma: ' + str(self.charisma)
         paceStr = 'Pace: ' + str(self.pace)
         toughStr = 'Toughness ' + str(self.toughness)        
         edgeStr = 'Edges: {'
@@ -353,24 +386,23 @@ class Goblin:
         for i, skill in enumerate(self.skills):
             if str(self.skills[skill][1]) != '0':
                 skillStr += str(skill) + ': ' + str(dieTypes[str(self.skills[skill][1])]) + ', '
+        
         for i in self.edges:
             if i == len(self.edges) - 1:
                  edgeStr += "\n" + self.edges[i].toString() + '}'
             else:
                  edgeStr += "\n" + self.edges[i].toString() + ', '
 
-        # for i, hind in self.hindrances:
-        #     if i == len(self.hindrances) - 1:
-        #         hindStr += str(hind) + '}'
-        #     else:
-        #         hindStr += str(hind) + ', '
-
+        for i in self.hindrances:
+            if i == len(self.hindrances) - 1:
+                 hindStr += "\n" + self.hindrances[i].toString() + '}'
+            else:
+                 hindStr += "\n" + self.hindrances[i].toString() + ', '
+                 
         skillStr = skillStr[0:(len(skillStr)-2)] + ''
 
-        returnStr = attStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
+        returnStr = self.name + '\nLevel: ' + str(self.level) + '\n' + attStr + '\n' + charStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
 
-goblin = Goblin(32,0,0,0)
-print(goblin.name)
-print("Level: " + str(goblin.level))
+goblin = Goblin(5,0,0,0)
 print(goblin.toString())
