@@ -316,7 +316,7 @@ class Goblin:
                      self.attr[addAttr] += 1
                      self.attrLock = True                
                      valid = True
-                     lvlStr += addAttr + " raised by 1"
+                     lvlStr += " " + addAttr + " raised by 1 "
             if mod is 2:
                 self.assignSkills(2, False)
                 lvlStr += " skills raised "
