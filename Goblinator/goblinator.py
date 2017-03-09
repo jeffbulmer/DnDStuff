@@ -12,21 +12,20 @@ import hindranceLibrary
 
 class Goblin:    
     
-    def __init__(self, lvl, armour, paceMod, parryMod):
+    def __init__(self, lvl, armour):
         self.verbose = True
         self.allEdges = edgeLibrary.edgeLibrary()
         self.allHindrances = hindranceLibrary.hindranceLibrary() 
-        
-        self.name = self.generateName()      
+        self.pace = 6
+        self.charisma = 0
         self.level = 0
-        self.attrLock = False        
+        self.attrLock = False
         self.attr = {"agility": 1,
                 "smarts": 1,
                 "spirit": 1,
                 "strength": 1,
                 "vigor": 1
                 }
-        self.assignAttr()
         self.skills = {"boating": ["agility", 0],
                        "climbing": ["strength", 0],
                        "fighting": ["agility", 0],
@@ -44,19 +43,24 @@ class Goblin:
                        "tracking": ["smarts", 0],
                        "taunt": ["smarts", 0],
                        "use magic item": ["smarts", 0]}
-        self.assignSkills(15, True)
         self.edges = {}
         self.hindrances = {}
-        self.effects = {}        
+        self.effects = {}
+        self.base_toughness = self.toughness = 2;
+        self.base_parry = self.parry = 2;
+        self.makeCharacter(lvl, armour)
+        
+        
+        
+    def makeCharacter(self, lvl, armour):        
+        self.impair = {'smarts':1}
+        self.name = self.generateName()      
+        self.assignAttr()
+        self.assignSkills(15, True)
+        self.assignHindrances()        
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
-        self.base_parry = 2 + (self.skills["fighting"][1]+1)
-        self.parry = self.base_parry
-        self.pace = 6 + paceMod
-        self.charisma = 0
-        for i in range (0,3):
-            self.addHindrance() 
-
+        self.base_parry = self.parry = 2 + (self.skills["fighting"][1]+1)
         while self.level < lvl:
             self.levelUp()        
                 
@@ -69,16 +73,25 @@ class Goblin:
                 ptA = 4
             if self.attr.keys()[addAttr] == 5:
                 continue
-            if self.attr.keys()[addAttr] is "smarts" and ptA%2 is 0:
-                while ptA > 0 and (self.attr[self.attr.keys()[addAttr]] + 1) < 6:                
-                    self.attr[self.attr.keys()[addAttr]] += 1
-                    ptA -= 2
-                    points -=2
+            if self.attr.keys()[addAttr] in self.impair:
+                if ptA%2 == 0:
+                    while ptA > 0 and (self.attr[self.attr.keys()[addAttr]] + 1) < 6:                
+                        self.attr[self.attr.keys()[addAttr]] += 1
+                        ptA -= 2
+                        points -=2
+                        #print(self.attr.keys()[addAttr] + " raised. Points remaining: " + str(points))
+                        if points == 0:
+                            continue
+                else:
+                    continue
             else:
                 while ptA > 0 and (self.attr[self.attr.keys()[addAttr]] + 1) < 6:
                     self.attr[self.attr.keys()[addAttr]] += 1
                     ptA -= 1
                     points -= 1
+                    #print(self.attr.keys()[addAttr] + " raised. Points remaining: " + str(points))
+                    if points == 0:
+                        continue
             
             
     def assignSkills(self, points, init):
@@ -142,6 +155,18 @@ class Goblin:
             else:
                 panic += 1
     
+    def assignHindrances(self):
+        numHindrances = randint(0,3)
+        i = 1
+        points = 0
+        while i <= numHindrances:
+            self.addHindrance()
+            i += 1
+        for k in self.hindrances:
+            if self.hindrances[k].hindType.lower() == 'major':
+                points += 2
+            else:
+                points += 1
     
     ######################### Effects format #############################
         #---- The following methods implement a character's edges.
@@ -156,11 +181,13 @@ class Goblin:
         #---- directly. The player is then left to interpret the resulting
         #---- character sheet.
         #---- By default, verbose is selected.
-        #effects = {1:[type("attr","skill","toughness", or "parry"), 
-        #----                  "nameOfAttr",
-        #----                  operator("plus","minus", "multiply", "divide"), 
-        #----                  value], ...}
-    
+        #----------------------------------------------------------------------
+        #---- Hindrances work similar to edges, but also must account for 
+        #---- Hindrance type, which is major or minor. 
+        #---- A character may only have one major hindrance, so the add and
+        #---- evaluate functions incorporate this extra check.
+        #---- additionally, the verify function is different within the 
+        #---- hindrance class. Go to that class for more information.    
     def addEdge(self):
         addEdge = self.allEdges.selectAtRandom()
         names = {};
@@ -201,6 +228,7 @@ class Goblin:
                 self.doEffectsVerbose(effects[i], hindrance.getName())
             else:
                 self.doEffectsCompact(effects[i], hindrance.getName())
+        
         
     def doEffectsVerbose(self, effect, modName):
         mod = effect[0]
@@ -297,7 +325,16 @@ class Goblin:
                 self.addEdge()
                 lvlStr += " edge added "
                 valid = True
+        self.updateImpair()
         print(lvlStr)
+        
+    def updateImpair(self):
+        for k in self.impair:
+            if(self.impair[k] == 1):
+                self.impair[k] -= 1;
+        for k,v in self.impair.items():        
+            if(v == 0):
+                del self.impair[k]
     
     ############################### Name Generation ###########################
         #---- Handles random name generation for a goblin.
@@ -404,5 +441,6 @@ class Goblin:
         returnStr = self.name + '\nLevel: ' + str(self.level) + '\n' + attStr + '\n' + charStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
 
-goblin = Goblin(5,0,0,0)
+goblin = Goblin(5,0)
 print(goblin.toString())
+print(goblin.impair)
