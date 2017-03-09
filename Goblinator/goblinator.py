@@ -36,13 +36,15 @@ class Goblin:
                        "use magic item": ["smarts", 0]}
         self.assignSkills(15)
         self.edges = {}
+        self.effects = {}
         while self.level < lvl:
             self.levelUp()
-        self.toughness = 2+ (self.attr["vigor"]+1) + armour
-        self.parry = 2 + (self.skills["fighting"][1]+1)
+        self.base_toughness = 2+ (self.attr["vigor"]+1)
+        self.toughness = self.base_toughness + armour
+        self.base_parry = 2 + (self.skills["fighting"][1]+1)
+        self.parry = self.base_parry
         self.pace = 6 + paceMod
         
-        #self.parry = 2 + (self.skills["fighting"]/2) + parryMod   
                 
     def assignAttr(self):
         points = 5;
@@ -123,24 +125,56 @@ class Goblin:
     
     
     ######################### Effects format #############################
-        #----effects = {1:[type("attr","skill","toughness", or "parry"), 
+        #---- The following methods implement a character's edges.
+        #---- The format of Edges is described below in a dedicated class
+        #---- Once an edge is chosen, the addEdge() function processes that edge
+        #---- applying its effects to the character
+        #---- There are two main ways of evaluating an edge: verbose and compact
+        #---- The verbose method applies the effects in the form of strings,
+        #---- which are added to the effects array, preserving the character's
+        #---- original skills and attributes. 
+        #---- The compact method changes the characters attributes and skills 
+        #---- directly. The player is then left to interpret the resulting
+        #---- character sheet.
+        #---- By default, verbose is selected.
+        #effects = {1:[type("attr","skill","toughness", or "parry"), 
         #----                  "nameOfAttr",
         #----                  operator("plus","minus", "multiply", "divide"), 
         #----                  value], ...}
     
-    def addEdge(self, edge):
+    def addEdge(self, edge, verbose):
         if edge.isCompatible(self.attr, self.skills, self.edges):
-            self.evaluateEdge(edge)
+            self.evaluateEdge(edge, verbose)
             self.edges[len(self.edges)] = edge;
             
     
-    def evaluateEdge(self, edge):
+    def evaluateEdge(self, edge, verbose):
         effects = edge.getEffects()
         for i in effects:
-            self.doEffects(effects[i])
+            if verbose:
+                self.doEffectsVerbose(effects[i], edge.getName())
+            else:
+                self.doEffectsCompact(effects[i], edge.getName())
             #print(edge.name + " effects done")
             
-    def doEffects(self, effect):
+    def doEffectsVerbose(self, effect, edgeName):
+        mod = effect[0]
+        name = effect[1]
+        operator = effect[2]
+        value = effect[3]
+        if mod is ("attr" or "skills"):
+            self.effects[len(self.effects)] = name + " " + operator + str(value) + " due to " + edgeName
+        elif mod is "toughness":
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.toughness = self.operate(operator, self.toughness, value)
+        elif mod is "parry":
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.parry = self.operate(operator, self.parry, value)
+        elif mod is "pace":
+            self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + edgeName
+            self.pace = self.operate(operator, self.pace, value)
+    
+    def doEffectsCompact(self, effect):
         mod = effect[0]
         name = effect[1]
         operator = effect[2]
@@ -291,7 +325,7 @@ class Goblin:
         skillStr = 'Skills: '
         paceStr = 'Pace: ' + str(self.pace)
         toughStr = 'Toughness ' + str(self.toughness)        
-        edgeStr = 'Edges: {' + str(self.edges)
+        edgeStr = 'Edges: {'
         hindStr = 'Hindrances: {'
 
         for i, att in enumerate(self.attr):
@@ -304,11 +338,11 @@ class Goblin:
             if str(self.skills[skill][1]) != '0':
                 skillStr += str(skill) + ': ' + str(dieTypes[str(self.skills[skill][1])]) + ', '
 
-        # for i, edge in self.edges:
-        #     if i == len(self.edges) - 1:
-        #         edgeStr += str(edge) + '}'
-        #     else:
-        #         edgeStr += str(edge) + ', '
+        for i in self.edges:
+            if i == len(self.edges) - 1:
+                 edgeStr += "\n" + self.edges[i].toString() + '}'
+            else:
+                 edgeStr += "\n" + self.edges[i].toString() + ', '
 
         # for i, hind in self.hindrances:
         #     if i == len(self.hindrances) - 1:
@@ -401,14 +435,17 @@ class Edge:
                     return (comparison <= operand)
                 elif operator == "equal":
                     return (comparison == operand)
+                    
+    def toString(self):
+        return self.name + ": " + self.description;
 
 goblin = Goblin(0,0,0,0)
-requirement = {1:["attr", "vigor", "at least", 5]}
+requirement = {1:["attr", "vigor", "at least", 4]}
 effects = {1:["pace", 0, "plus", 6]}
-block = Edge("Expert Sprinter",requirement, 0, effects)
+block = Edge("Expert Sprinter",requirement, "Through rigorous training, this character has gained the ability to run very fast", effects)
 print(goblin.name)
 print("Level: " + str(goblin.level))
-goblin.addEdge(block)
+goblin.addEdge(block, True)
 print(goblin.toString())
 boolE = block.isCompatible(goblin.attr, goblin.skills, goblin.edges)
 print("Expert Sprinter Compatibility: " + str(boolE))
