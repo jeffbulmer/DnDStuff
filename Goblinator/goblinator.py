@@ -441,6 +441,7 @@ class Goblin:
         returnStr = self.name + '\nLevel: ' + str(self.level) + '\n' + attStr + '\n' + charStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
 
-goblin = Goblin(20,0)
+l = int(raw_input("What level?"))
+goblin = Goblin(l,0)
 print(goblin.toString())
 print(goblin.impair)
