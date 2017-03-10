@@ -193,7 +193,7 @@ class Goblin:
         names = {};
         for i in self.edges:
             names[i] = self.edges[i].name
-        while (addEdge.isCompatible(self.attr, self.skills, self.edges, self.level)) == False:
+        while not addEdge.isCompatible(self.attr, self.skills, self.edges, self.level):
            addEdge = self.allEdges.selectAtRandom()
         self.evaluateEdge(addEdge, self.verbose)
         self.edges[len(self.edges)] = addEdge;
@@ -441,6 +441,6 @@ class Goblin:
         returnStr = self.name + '\nLevel: ' + str(self.level) + '\n' + attStr + '\n' + charStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
 
-goblin = Goblin(5,0)
+goblin = Goblin(20,0)
 print(goblin.toString())
 print(goblin.impair)

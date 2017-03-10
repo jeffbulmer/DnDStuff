@@ -70,7 +70,7 @@ class Modifier(object):
         operand = requirement[3]
         compareDict = attr;        
         for i in edges:
-            if self.name == edges[i].name.lower():
+            if self.name.lower() == edges[i].name.lower():
                 return False
         if checkType == "attr":
             compareDict = attr
