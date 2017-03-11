@@ -12,22 +12,23 @@ class SkillSet:
     
     def __init__(self, possibleSkills):
         self.skills = {}
-        self.skills = self.populateSkills(possibleSkills)
+        self.populateSkills(possibleSkills)
+        print(self.skills)
         
     def populateSkills(self, possibleSkills):
         for i in possibleSkills:
-            self.skills[i] = {possibleSkills[i], 0}
+            self.skills[i] = [possibleSkills[i], 0]
             
     def getSkills(self):
         return self.skills
             
-    def assignSkills(self, points, init):
+    def assignSkills(self, points, init, attr):
          panic = 0
          while points > 0:
             #select skill to modify            
             addAttr = randint(0,len(self.skills)-1)
             skill = self.skills[self.skills.keys()[addAttr]]
-            maxV = self.attr[skill[0]]
+            maxV = attr[skill[0]]
             
             #determine modifier
             mod = randint(1,5)            

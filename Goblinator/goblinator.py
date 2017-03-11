@@ -44,7 +44,8 @@ class Goblin:
                        "tracking":"smarts",
                        "taunt": "smarts",
                        "use magic item": "smarts"}
-        self.skills = SkillSet.SkillSet(self.skillString)
+        self.skillSet = SkillSet.SkillSet(self.skillString)
+        self.skills = self.skillSet.getSkills()
         self.edges = {}
         self.hindrances = {}
         self.effects = {}
@@ -57,7 +58,7 @@ class Goblin:
         self.impair = {'smarts':1}
         self.name = self.nameObject.getName()
         self.assignAttr()
-        self.skills.assignSkills(15, True)
+        self.assignSkills(15, True)
         self.assignHindrances()        
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
@@ -94,8 +95,9 @@ class Goblin:
                     if points == 0:
                         continue
             
-            
-   
+    def assignSkills(self, points, init):
+        self.skillSet.assignSkills(points, init, self.attr)
+        self.skills = self.skillSet.getSkills()
     
     def assignHindrances(self):
         numHindrances = randint(0,3)
@@ -260,7 +262,7 @@ class Goblin:
                      valid = True
                      lvlStr += " " + addAttr + " raised by 1 "
             if mod is 2:
-                self.skills.assignSkills(2, False)
+                self.assignSkills(2, False)
                 lvlStr += " skills raised "
                 valid = True
             if mod is 3:
