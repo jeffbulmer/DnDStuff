@@ -5,7 +5,7 @@ Spyder Editor
 This is a temporary script file.
 """
 from random import randint
-import math
+import SkillSet
 import Name
 import edgeLibrary
 import hindranceLibrary
@@ -27,23 +27,24 @@ class Goblin:
                 "strength": 1,
                 "vigor": 1
                 }
-        self.skills = {"boating": ["agility", 0],
-                       "climbing": ["strength", 0],
-                       "fighting": ["agility", 0],
-                       "healing": ["smarts", 0],
-                       "intimidate": ["spirit",0],
-                       "lockpicking": ["agility",0],
-                       "notice": ["smarts", 0],
-                       "persuasion": ["spirit",0],
-                       "repair": ["smarts", 0],
-                       "shooting": ["agility", 0],
-                       "stealth": ["agility", 0],
-                       "survival":["smarts", 0],
-                       "swimming": ["agility", 0],
-                       "throwing": ["agility", 0],
-                       "tracking": ["smarts", 0],
-                       "taunt": ["smarts", 0],
-                       "use magic item": ["smarts", 0]}
+        self.skillString = {"boating": "agility", 
+                       "climbing": "strength",
+                       "fighting": "agility",
+                       "healing": "smarts",
+                       "intimidate": "spirit",
+                       "lockpicking": "agility",
+                       "notice": "smarts",
+                       "persuasion": "spirit",
+                       "repair": "smarts",
+                       "shooting": "agility",
+                       "stealth": "agility",
+                       "survival":"smarts", 
+                       "swimming":"agility",
+                       "throwing":"agility",
+                       "tracking":"smarts",
+                       "taunt": "smarts",
+                       "use magic item": "smarts"}
+        self.skills = SkillSet.SkillSet(self.skillString)
         self.edges = {}
         self.hindrances = {}
         self.effects = {}
@@ -52,12 +53,11 @@ class Goblin:
         self.makeCharacter(lvl, armour)
         
         
-        
     def makeCharacter(self, lvl, armour):        
         self.impair = {'smarts':1}
         self.name = self.nameObject.getName()
         self.assignAttr()
-        self.assignSkills(15, True)
+        self.skills.assignSkills(15, True)
         self.assignHindrances()        
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
@@ -95,66 +95,7 @@ class Goblin:
                         continue
             
             
-    def assignSkills(self, points, init):
-         panic = 0
-         while points > 0:
-            #select skill to modify            
-            addAttr = randint(0,len(self.skills)-1)
-            skill = self.skills[self.skills.keys()[addAttr]]
-            maxV = self.attr[skill[0]]
-            
-            #determine modifier
-            mod = randint(1,5)            
-            
-            #determine incentive 
-            #skill assignment incentivizes putting points into 
-            #useful skills that correspond to attributes
-            #which the goblin possesses.
-            incentive = math.floor(maxV/2);
-            if(maxV > 1):
-                if init:
-                    incentive += 1
-                else:
-                    incentive -= 1
-            else:
-                incentive -= 2
-            if(skill[1] > maxV):
-                incentive -= 1
-            elif(skill[1] < maxV):
-                incentive += 1
-            if(skill[0].lower == 'smarts' or skill[0].lower == 'agility'):
-                incentive += 1
-            incentive += maxV - (mod+skill[1]-1)
-            
-            #modify skill
-            check = randint(0,maxV)
-            
-            #print("Skill: " + str(self.skills.keys()[addAttr]))
-            #print("Incentive = " + str(incentive))
-            #print("Check = " + str(check))
-            #print("Mod = " + str(mod))
-            if incentive >= check or panic >= 5:
-                if panic == 5:
-                    panic = 0;                
-                cost = 0;
-                for i in range(0,mod):
-                    currV = skill[1]
-                    currCost = 0
-                    if (currV + 1) > 5:
-                        break;
-                    if (currV >= maxV) or (currV == 0 and not init):
-                        currCost = 2
-                    else:
-                        currCost = 1
-                        
-                    cost += currCost
-                    if points - cost < 0:
-                        break;
-                    skill[1] += 1
-                
-                points -= cost
-            else:
-                panic += 1
+   
     
     def assignHindrances(self):
         numHindrances = randint(0,3)
@@ -319,7 +260,7 @@ class Goblin:
                      valid = True
                      lvlStr += " " + addAttr + " raised by 1 "
             if mod is 2:
-                self.assignSkills(2, False)
+                self.skills.assignSkills(2, False)
                 lvlStr += " skills raised "
                 valid = True
             if mod is 3:

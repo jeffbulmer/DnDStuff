@@ -35,7 +35,8 @@ class Name:
            vowels = self.assignWeights({"a": 7, "e": 12, "i": 11, "o": 29, "u":9, "y":3})       
            consonants = self.assignWeights({'b':3,'c':2,'d':6,'f':1,'g':16,'h':5,'j':1,'k':10,'l':15,'m':9,'n':12,'p':2, 'q':0,'r':14,'s':6,'t':6,'v':5,'w':4,'x':3,'y':3,'z':1})        
            return self.generateNameLetters(vowels, consonants)
-           
+        else:
+            return "Cody"
          
     
     def generateNameLetters(self, vowels, consonants):
