@@ -13,7 +13,6 @@ class SkillSet:
     def __init__(self, possibleSkills):
         self.skills = {}
         self.populateSkills(possibleSkills)
-        print(self.skills)
         
     def populateSkills(self, possibleSkills):
         for i in possibleSkills:

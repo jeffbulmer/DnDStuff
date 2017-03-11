@@ -12,6 +12,7 @@ import hindranceLibrary
 
 class Goblin:    
     
+    
     def __init__(self, lvl, armour):
         self.nameObject = Name.Name("goblin")        
         self.verbose = True
@@ -112,7 +113,7 @@ class Goblin:
             else:
                 points += 1
     
-    ######################### Effects format #############################
+    ######################### Edges and Hindrances ############################
         #---- The following methods implement a character's edges.
         #---- The format of Edges is described below in a dedicated class
         #---- Once an edge is chosen, the addEdge() function processes that edge
@@ -320,8 +321,77 @@ class Goblin:
 
         returnStr = self.name + '\nLevel: ' + str(self.level) + '\n' + attStr + '\n' + charStr + '\n' + paceStr + '\n' + toughStr + '\n' + skillStr + '\n' + edgeStr + '\n' + hindStr
         print(returnStr)       
-
+        
+    ######################### import/export Methods ###########################
+            #---- The following methods allow a character to exported and imported
+            #---- which makes it so we can save a character for later. 
+            #---- Using this, we can import a character to do things like using
+            #---- the levelup function on a preexisting character.        
+        
+    def export(self, typeof):
+        if typeof.lower() == 'dict':        
+            exportDict = {"attr": self.attr,
+                          "base_parry": self.base_parry,
+                          "base_toughness": self.base_toughness,
+                          "charisma": self.charisma,
+                          "edges": self.edges,
+                          "effects": self.effects,
+                          "hindrances": self.hindrances,
+                          "impair": self.impair,
+                          "level": self.level,                      
+                          "name": self.name,                      
+                          "pace": self.pace,
+                          "parry": self.parry,
+                          "skillSet": self.skillSet,
+                          "skills": self.skills,
+                          "toughness": self.toughness,
+                          "verbose": self.verbose
+                          }
+        elif typeof.lower() == 'string':
+            exportDict = str('"attr": ' + str(self.attr) +
+                          ', "base_parry": ' +str(self.base_parry) +
+                          ', "base_toughness": ' + str(self.base_toughness) +
+                          ', "charisma": ' + str(self.charisma) +
+                          ', "edges": {' +self.enumerateModifiers(self.edges) +
+                          ', "effects": ' + self.effects +
+                          ', "hindrances": ' + self.enumerateModifiers(self.hindrances) +
+                          ', "impair": ' + str(self.impair) +
+                          ', "level": ' + str(self.level) +                      
+                          ', "name": ' + self.name +                      
+                          ', "pace": ' + str(self.pace) +
+                          ', "parry": ' + str(self.parry) +
+                          ', "skillString": ' + self.skillString +
+                          ', "skills": ' + str(self.skills) +
+                          ', "toughness": ' +str(self.toughness) +
+                          ', "verbose": ' + str(self.verbose))
+        return exportDict
+        
+        
+    def enumerateModifiers(self, modifiers):
+        returnStr = ""            
+        for i in modifiers:
+            returnStr += modifiers[i].name + ";"
+        return(returnStr)
+                
+    def importChar(self, importDict):
+        if(type(importDict) == 'dict'):
+            self.attr = importDict["attr"]
+            self.base_parry = importDict["base_parry"]
+            self.base_toughness = importDict["base_toughness"]
+            self.charisma = importDict["charisma"]
+            self.edges = importDict["edges"]
+            self.effects = importDict["effects"]
+            self.hindrances = importDict["hindrances"]
+            self.impair = importDict["impair"]
+            self.level = importDict["level"]
+            self.name = importDict["name"]
+            self.pace = importDict["pace"]
+            self.parry = importDict["parry"]
+            self.skillSet = importDict["skillSet"]
+            self.skills = importDict["skills"]
+            self.toughness = importDict["toughness"]
+            self.verbose = importDict["verbose"]
+        
 l = int(raw_input("What level?"))
 goblin = Goblin(l,0)
-print(goblin.toString())
-print(goblin.impair)
+print(goblin.enumerateModifiers(goblin.edges))
