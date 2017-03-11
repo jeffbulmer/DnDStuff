@@ -72,11 +72,13 @@ class Modifier(object):
         for i in edges:
             if self.name.lower() == edges[i].name.lower():
                 return False
+            elif operator == 'has not' and name.lower() == edges[i].name.lower():
+                return False
         if checkType == "attr":
             compareDict = attr
         elif checkType == "skill":
             compareDict = skills
-        elif checkType == "edge":
+        elif checkType == ("edge" or "hindrance"):
             compareDict = edges
         elif checkType == ("level" or "charisma" or "toughness"):
             if operator.lower() == "at least":

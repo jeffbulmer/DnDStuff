@@ -19,6 +19,8 @@ class Character(object):
         self.edges = {}
         self.hindrances = {}
         self.effects = {}
+        self.base_toughness = self.toughness = 2;
+        self.base_parry = self.parry = 2;    
         self.pace = 6
         self.charisma = 0
         self.level = 0
@@ -33,9 +35,7 @@ class Character(object):
         self.skills = self.skillSet.getSkills()
         self.assignAttr()
         self.assignSkills(15, True)
-        self.assignHindrances()
-        self.base_toughness = self.toughness = 2;
-        self.base_parry = self.parry = 2;        
+        self.assignHindrances()    
         self.base_toughness = 2+ (self.attr["vigor"]+1)
         self.toughness = self.base_toughness + armour
         self.base_parry = self.parry = 2 + (self.skills["fighting"][1]+1)
@@ -187,7 +187,13 @@ class Character(object):
         elif mod is "charisma":
             self.effects[len(self.effects)] = mod + " " + operator + str(value) + " due to " + modName
             self.charisma = self.operate(operator, self.charisma, value)
+        elif mod is "edge":
+            i = 0;
+            while int(i) < int(value):
+                self.addEdge()
+                i += 1
     
+    ####doEffectsCompact is deprecated
     def doEffectsCompact(self, effect):
         mod = effect[0]
         name = effect[1]
