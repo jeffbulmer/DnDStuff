@@ -13,11 +13,13 @@ class Hindrance(Modifier.Modifier):
         super(Hindrance, self).__init__(name, requirements, description, effects)
         self.hindType = hindType
         
-    def isCompatible(self, attr, skills, edges, hindrances, level, containsMajor):
+    def isCompatible(self, attr, skills, edges, hindrances, level, containsMajor, minors):
         for i in hindrances:
             if self.name.lower() == hindrances[i].name.lower():
                 return False
         if self.hindType.lower() == "major" and containsMajor:
+            return False;
+        elif self.hindType.lower() == "minor" and int(minors) > 1:
             return False;
         else:
             return super(Hindrance, self).isCompatible(attr, skills, hindrances, level)

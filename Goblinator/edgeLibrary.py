@@ -13,9 +13,17 @@ class edgeLibrary:
     def __init__(self):
         self.edges = {}
         self.populate()
+        self.length = len(self.edges)
         
     def selectAtRandom(self):
         return self.edges[randint(0,len(self.edges)-1)]
+        
+    def selectWithName(self, name):
+        for i in self.edges:
+            if i.getName() == name:
+                return i
+        print("Edge Not Found")
+        return 0
         
     def populate(self):
         self.edges = [Edge.Edge("Master Sprinter",{1:["attr", "vigor", "at least", 3], 2:["attr","strength","at least",5], 3:["edge","Fleet-Footed", "has", 0]}, "Through rigorous training, this character has gained the ability to run very fast. Permanent pace increase, and this character rolls a d12 at +2 when determining sprint distance", {1:["pace", 0, "plus", 2]}),

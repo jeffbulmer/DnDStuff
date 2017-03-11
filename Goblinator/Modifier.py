@@ -100,6 +100,13 @@ class Modifier(object):
                     return (comparison <= operand)
                 elif operator == "equal":
                     return (comparison == operand)
+    
+    @staticmethod
+    def findMod(name, library):
+        for i in library:
+            if name == i.name:
+                return i
+        return {}
                     
     def toString(self):
         return self.name + ": " + self.description;
